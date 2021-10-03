@@ -1,0 +1,22 @@
+{
+  "name": "minutemedia",
+  "version": "1.0.0",
+  "description": "home assignment for minute media",
+  "main": "matches_service.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/damebrown/minutemedia_hw.git"
+  },
+  "author": "Daniel Brown",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/damebrown/minutemedia_hw/issues"
+  },
+  "homepage": "https://github.com/damebrown/minutemedia_hw#readme",
+  "dependencies": {
+    "nodemon": "^2.0.13"
+  }
+}
