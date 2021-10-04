@@ -18,7 +18,6 @@ function get_tour_id(tour) {
         tour_count += 1;
         tour_dict[tour] = tour_count;
     }
-    // console.log("tour " + tour + "'s id is: ", tour_dict[tour]);
     return tour_dict[tour];
 }
 
@@ -27,7 +26,6 @@ function get_team_id(team) {
         teams_count++;
         teams_dict[team] = teams_count;
     }
-    // console.log("team " + team + "'s id is: ", teams_dict[team]);
     if (teams_count > 103) {
         console.log(teams_dict);
     }
@@ -64,28 +62,19 @@ client.connect((err) => {
                 .pipe(csv())
                 .on('data', (row) => {
                     let match_obj = prase_row(row, path);
-                    // console.log(match_obj);
-                    // console.log(match_obj.);
                     if (path === played_path) {
-                        // db.collection('played').insertOne(match_obj)
+                        db.collection('played').insertOne(match_obj)
                     }
                     else if (path === upcoming_path) {
-                        // db.collection('upcoming').insertOne(match_obj)
+                        db.collection('upcoming').insertOne(match_obj)
                     }
                 })
                 .on('end', () => {
                     console.log(path + ' file successfully processed');
-                    console.log("there are ", teams_count, " teams");
-                    // console.log("teams: ", teams_dict);
-                    console.log("there are ", tour_count, " tournaments");
-                    // console.log("tournaments: ", tour_dict);
+                    // console.log("there are ", teams_count, " teams");
+                    // console.log("there are ", tour_count, " tournaments");
                 });
         }
-        // const result = Object.entries(teams_dict).map(([key, value]) => ({
-        //     role: key,
-        //     ...value
-        // }));
-        // console.log(result);
     }
     else {
         console.log("an error occured")
