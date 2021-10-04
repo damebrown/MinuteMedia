@@ -1,19 +1,29 @@
+/**** Requires ****/
 
-const MongoClient = require('mongodb').MongoClient;
-const uri = 'mongodb://localhost:27017';
-const client = new MongoClient(uri);
 const csv = require('csv-parser');
 const fs = require('fs');
+const MongoClient = require('mongodb').MongoClient;
+
+/**** Global Variables ****/
+
+const uri = 'mongodb://localhost:27017';
+const client = new MongoClient(uri);
+
 const played_path = 'result_played.csv'
 const upcoming_path = 'result_upcoming.csv'
 const data_paths = [played_path, upcoming_path]
-
 var tour_dict = {};
 var teams_dict = {};
 var tour_count = 0;
 var teams_count = 0;
 
+/**** Functions ****/
+
 function get_tour_id(tour) {
+    /**
+     * This function checks if the received tournament, tour, exists. 
+     * If it does it returns it's id, else it creates an id for it, saves it and returns it.
+     */
     if (!(tour in tour_dict)) {
         tour_count += 1;
         tour_dict[tour] = tour_count;
@@ -22,17 +32,22 @@ function get_tour_id(tour) {
 }
 
 function get_team_id(team) {
+    /**
+     * This function checks if the received team, team, exists.
+     * If it does it returns it's id, else it creates an id for it, saves it and returns it.
+     */
     if (!(team in teams_dict)) {
         teams_count++;
         teams_dict[team] = teams_count;
-    }
-    if (teams_count > 103) {
-        console.log(teams_dict);
     }
     return teams_dict[team]
 }
 
 function prase_row(row, path) {
+    /**
+     * This function creates the suitable Match object according to the state of the match- upcoming or played.
+     * It returns the Match object in json format.
+     */
     let home_team = { "team": row["home_team"], "id": get_team_id(row["home_team"]) }
     let away_team = { "team": row["away_team"], "id": get_team_id(row["away_team"]) }
     let tour = { "tournament": row["tournament"], "id": get_tour_id(row["tournament"]) }
@@ -52,6 +67,9 @@ function prase_row(row, path) {
 }
 
 client.connect((err) => {
+    /**
+     * This function parses the recieved .csv files and creates a db of the respective Match objects.
+     */
     console.log("Connected")
     if (!err) {
         const db = client.db("footballMatches");
@@ -71,8 +89,6 @@ client.connect((err) => {
                 })
                 .on('end', () => {
                     console.log(path + ' file successfully processed');
-                    // console.log("there are ", teams_count, " teams");
-                    // console.log("there are ", tour_count, " tournaments");
                 });
         }
     }
