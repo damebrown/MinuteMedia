@@ -1,14 +1,93 @@
 
 const MongoClient = require('mongodb').MongoClient;
-//todo get the port number from the football_service.js
-const url = "mongodb://localhost:8080"
+const uri = 'mongodb://localhost:27017';
+const client = new MongoClient(uri);
+const csv = require('csv-parser');
+const fs = require('fs');
+const played_path = 'result_played.csv'
+const upcoming_path = 'result_upcoming.csv'
+const data_paths = [played_path, upcoming_path]
 
-var tour_dict = {}
-var teams_dict = {}
+var tour_dict = {};
+var teams_dict = {};
+var tour_count = 0;
+var teams_count = 0;
 
-//for match in played:
-//  if team or tour is unknown, add it to dicts
-//  create played_match .json object
-//  write it to played_match db
+function get_tour_id(tour) {
+    if (!(tour in tour_dict)) {
+        tour_count += 1;
+        tour_dict[tour] = tour_count;
+    }
+    // console.log("tour " + tour + "'s id is: ", tour_dict[tour]);
+    return tour_dict[tour];
+}
 
-//same for each match in upcoming
+function get_team_id(team) {
+    if (!(team in teams_dict)) {
+        teams_count++;
+        teams_dict[team] = teams_count;
+    }
+    // console.log("team " + team + "'s id is: ", teams_dict[team]);
+    if (teams_count > 103) {
+        console.log(teams_dict);
+    }
+    return teams_dict[team]
+}
+
+function prase_row(row, path) {
+    let home_team = { "team": row["home_team"], "id": get_team_id(row["home_team"]) }
+    let away_team = { "team": row["away_team"], "id": get_team_id(row["away_team"]) }
+    let tour = { "tournament": row["tournament"], "id": get_tour_id(row["tournament"]) }
+    let match = {
+        "home team": home_team,
+        "away team": away_team,
+        "start date": row["start_time"],
+        "tournament": tour
+    }
+    if (path === played_path) {
+        match["score"] = { "home_score": row["home_score"], "away_score": row["away_score"] }
+    }
+    else if (path === upcoming_path) {
+        match["kickoff time"] = row["kickoff"]
+    }
+    return match
+}
+
+client.connect((err) => {
+    console.log("Connected")
+    if (!err) {
+        const db = client.db("footballMatches");
+        db.createCollection("played").catch(err => console.log(err["codeName"]))
+        db.createCollection("upcoming").catch(err => console.log(err["codeName"]))
+        for (const path of data_paths) {
+            fs.createReadStream(path)
+                .pipe(csv())
+                .on('data', (row) => {
+                    let match_obj = prase_row(row, path);
+                    // console.log(match_obj);
+                    // console.log(match_obj.);
+                    if (path === played_path) {
+                        // db.collection('played').insertOne(match_obj)
+                    }
+                    else if (path === upcoming_path) {
+                        // db.collection('upcoming').insertOne(match_obj)
+                    }
+                })
+                .on('end', () => {
+                    console.log(path + ' file successfully processed');
+                    console.log("there are ", teams_count, " teams");
+                    // console.log("teams: ", teams_dict);
+                    console.log("there are ", tour_count, " tournaments");
+                    // console.log("tournaments: ", tour_dict);
+                });
+        }
+        // const result = Object.entries(teams_dict).map(([key, value]) => ({
+        //     role: key,
+        //     ...value
+        // }));
+        // console.log(result);
+    }
+    else {
+        console.log("an error occured")
+    }
+})
